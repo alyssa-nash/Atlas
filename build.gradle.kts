@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2022, Alyssa Nash <nash.alyssab@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 buildscript {
     repositories {
         google()
@@ -22,16 +38,19 @@ subprojects {
             targetExclude("**/build/**/*.kt")
             ktlint(rootProject.libs.versions.ktlint.get())
                 .userData(mapOf("android" to "true"))
+            licenseHeaderFile(rootProject.file("lint/copyrights/copyright.kt"))
         }
         kotlinGradle {
             target("**/*.kts")
             targetExclude("**/build/**/*.kts")
             ktlint(rootProject.libs.versions.ktlint.get())
                 .userData(mapOf("android" to "true"))
+          licenseHeaderFile(rootProject.file("lint/copyrights/copyright.kts"), "(^(?![\\/ ]\\*).*$)")
         }
         format("xml") {
             target("**/*.xml")
             targetExclude("**/build/**/*.xml")
+            licenseHeaderFile(rootProject.file("lint/copyrights/copyright.xml"), "(<[^!?])")
         }
     }
 
