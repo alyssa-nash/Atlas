@@ -14,15 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.syriusdevelopment.atlas.ui.theme
+package com.syriusdevelopment.atlas.ui.settings
 
-import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 
-// Light Mode
-val Blue40 = Color(0xFF434DD4) // Primary
-val Gray40 = Color(0xFF5C5D72) // Secondary
-// No Tertiary for now
-
-// Dark Mode
-val Blue80 = Color(0xFFBEC2FF)
-val Gray80 = Color(0xFFC5C4DD)
+@Composable
+fun SettingsScreen(modifier: Modifier = Modifier) {
+    Text(text = "Settings", modifier)
+}

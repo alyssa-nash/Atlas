@@ -18,38 +18,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v1
-
       - name: Copy CI gradle.properties
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
-
       - name: Set up JDK 11
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: 11
           cache: gradle
-
       - name: Check code coverage
         run: ./gradlew koverMergedVerify
-
       - name: Check spotless
         run: ./gradlew spotlessCheck
-
       - name: Check detekt
         run: ./gradlew detekt
-
-      - name: Check lint
-        run: ./gradlew lintDebug
-
       - name: Run local tests
         run: ./gradlew testDebug
-
       - name: Generate kover report
         run: ./gradlew koverMergedXmlReport
-
       - name: Add coverage report to PR
         id: kover
         uses: mi-kas/kover-report@v1
@@ -60,7 +48,6 @@ jobs:
           update-comment: true
           min-coverage-overall: 80
           min-coverage-changed-files: 80
-
       - name: Upload build reports
         if: always()
         uses: actions/upload-artifact@v3
@@ -70,6 +57,7 @@ jobs:
 
   security:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - name: Run Snyk
@@ -77,38 +65,78 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --sarif-file-output=snyk.sarif
+          args: --sarif-file-output=snyk.sarif --severity-threshold=medium --fail-on=upgradable
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: snyk.sarif
 
-  build:
-    needs: test
-    runs-on: ubuntu-latest
+  androidTest:
+    runs-on: macos-latest
     timeout-minutes: 60
+    strategy:
+      matrix:
+        api-level: [ 23, 29 ]
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v3
-
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v1
-
       - name: Copy CI gradle.properties
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
-
       - name: Set up JDK 11
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: 11
-
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
+      - name: AVD cache
+        uses: actions/cache@v3
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-${{ matrix.api-level }}
+      - name: Create AVD and generate snapshot for caching
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
+      - name: Run UI tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: ./gradlew connectedAndroidTest
 
+  build:
+    needs: [test, androidTest]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - name: Copy CI gradle.properties
+        run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 11
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
       - name: Build apk
         run: ./gradlew assembleDebug
-
       - name: Upload build outputs (APKs)
         uses: actions/upload-artifact@v3
         with:
