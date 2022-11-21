@@ -71,7 +71,7 @@ jobs:
         with:
           sarif_file: snyk.sarif
 
-  androidTests:
+  androidTest:
     runs-on: macos-latest
     timeout-minutes: 60
     strategy:
