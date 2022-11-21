@@ -55,20 +55,20 @@ android {
     composeOptions { kotlinCompilerExtensionVersion = libs.versions.androidxComposeCompiler.get() }
 
     packagingOptions { resources { excludes.add("/META-INF/{AL2.0,LGPL2.1}") } }
-
-    lint {
-        warningsAsErrors = true
-    }
 }
 
 dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.fonts)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.collections.immutable)
     testImplementation(libs.junit4)
+    androidTestImplementation(libs.androidx.navigation.testing)
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
